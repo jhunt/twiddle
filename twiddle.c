@@ -12,7 +12,9 @@
 
 struct vm {
 	int  ip;
+	int  sp;
 	int *code;
+	int  stack[4096];
 };
 
 void run(struct vm *vm, int trace) {
@@ -20,6 +22,7 @@ void run(struct vm *vm, int trace) {
 	int o1;
 
 	vm->ip = 0;
+	vm->sp = -1;
 	while (op = vm->code[vm->ip]) {
 		if (trace) {
 			fprintf(stderr, "[%04x] %04x", vm->ip, op);
@@ -34,10 +37,12 @@ void run(struct vm *vm, int trace) {
 		case IPUSH:
 			o1 = vm->code[vm->ip++];
 			fprintf(stderr, " IPUSH %d\n", o1);
+			vm->stack[++vm->sp] = o1;
 			break;
 
 		case PRINT:
 			fprintf(stderr, " PRINT\n");
+			printf("%d\n", vm->stack[vm->sp--]);
 			break;
 		}
 	}
