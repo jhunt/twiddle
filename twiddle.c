@@ -17,22 +17,27 @@ struct vm {
 
 void run(struct vm *vm, int trace) {
 	int op;
+	int o1;
 
 	vm->ip = 0;
 	while (op = vm->code[vm->ip]) {
 		if (trace) {
-			fprintf(stderr, "[%04x] %04x\n", vm->ip, op);
+			fprintf(stderr, "[%04x] %04x", vm->ip, op);
 		}
 
 		vm->ip++;
 		switch (op) {
 		case HALT:
+			fprintf(stderr, " HALT\n");
 			return;
 
 		case IPUSH:
+			o1 = vm->code[vm->ip++];
+			fprintf(stderr, " IPUSH %d\n", o1);
 			break;
 
 		case PRINT:
+			fprintf(stderr, " PRINT\n");
 			break;
 		}
 	}
