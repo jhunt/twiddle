@@ -9,6 +9,8 @@
 #define HALT  1
 #define IPUSH 2
 #define PRINT 3
+#define IADD  4
+#define ISUB  5
 
 struct vm {
 	int  ip;
@@ -19,7 +21,7 @@ struct vm {
 
 void run(struct vm *vm, int trace) {
 	int op;
-	int a;
+	int a, b;
 
 	vm->ip = 0;
 	vm->sp = -1;
@@ -44,6 +46,20 @@ void run(struct vm *vm, int trace) {
 			fprintf(stderr, " PRINT\n");
 			printf("%d\n", vm->stack[vm->sp--]);
 			break;
+
+		case IADD:
+			fprintf(stderr, " IADD\n");
+			b = vm->stack[vm->sp--];
+			a = vm->stack[vm->sp--];
+			vm->stack[++vm->sp] = a + b;
+			break;
+
+		case ISUB:
+			fprintf(stderr, " ISUB\n");
+			b = vm->stack[vm->sp--];
+			a = vm->stack[vm->sp--];
+			vm->stack[++vm->sp] = a - b;
+			break;
 		}
 	}
 }
@@ -53,6 +69,10 @@ int main(int argc, char **argv) {
 
 	int prog[] = {
 		IPUSH, 42,
+		IPUSH, 10,
+		IADD,
+		IPUSH, 5,
+		ISUB,
 		PRINT,
 		HALT,
 		END,
