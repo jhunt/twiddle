@@ -45,6 +45,7 @@ void run(struct vm *vm, int trace) {
 
 	vm->ip = 0;
 	vm->sp = -1;
+	vm->fp = -1;
 	memset(vm->stack, ~0, sizeof(vm->stack) / sizeof(int));
 	while ((op = vm->code[vm->ip])) {
 		if (trace) {
@@ -111,10 +112,9 @@ void run(struct vm *vm, int trace) {
 			a = vm->code[vm->ip++]; /* fn addr */
 			b = vm->code[vm->ip++]; /* # args  */
 
-			vm->fp = vm->sp;
-			vm->stack[++vm->sp] = b;       /* number of parameeters  */
+			vm->stack[++vm->sp] = b;       /* number of parameters  */
+			vm->stack[++vm->sp] = vm->fp;  /* previous frame pointer */
 			vm->stack[++vm->sp] = vm->ip;  /* return address         */
-			vm->stack[++vm->sp] = vm->fp;    /* previous frame pointer */
 			vm->fp = vm->sp;
 			if (trace) {
 				dumpstack(vm);
@@ -123,25 +123,27 @@ void run(struct vm *vm, int trace) {
 			vm->ip = a;
 			if (trace) {
 				fprintf(stderr, "    at ip [%04x]\n", vm->ip);
-				fprintf(stderr, "       fp [%04x]\n", vm->fp);
-				fprintf(stderr, "       sp [%04x]\n", vm->sp);
+				fprintf(stderr, "       fp %d was %d\n", vm->fp, vm->stack[vm->fp]);
+				fprintf(stderr, "       sp %d\n", vm->sp);
 			}
 			break;
 
 		case RET:
 			if (trace) {
-				fprintf(stderr, " RET\n");
+				fprintf(stderr, " RET (fp=%d)\n", vm->fp);
 			}
-			a = vm->stack[vm->sp];
-			vm->ip = vm->stack[vm->fp-1];
-			vm->fp = vm->stack[vm->fp];
+			a = vm->stack[vm->sp--]; /* return value */
 			vm->sp = vm->fp;
+			vm->ip = vm->stack[vm->sp--];
+			vm->fp = vm->stack[vm->sp--];
+			b = vm->stack[vm->sp--]; /* number of args */
+			vm->sp -= b;
 			vm->stack[++vm->sp] = a;
 			if (trace) {
 				dumpstack(vm);
 				fprintf(stderr, "    to ip [%04x]\n", vm->ip);
-				fprintf(stderr, "       fp [%04x]\n", vm->fp);
-				fprintf(stderr, "       sp [%04x]\n", vm->sp);
+				fprintf(stderr, "       fp %d\n", vm->fp);
+				fprintf(stderr, "       sp %d\n", vm->sp);
 			}
 			break;
 
@@ -156,8 +158,8 @@ void run(struct vm *vm, int trace) {
 			if (trace) {
 				fprintf(stderr, " JE [%04x]\n", vm->code[vm->ip]);
 			}
-			a = vm->stack[vm->sp--];
-			b = vm->stack[vm->sp--];
+			a = vm->stack[vm->sp];
+			b = vm->stack[vm->sp - 1];
 			if (a == b) {
 				vm->ip = vm->code[vm->ip];
 			} else {
@@ -169,8 +171,8 @@ void run(struct vm *vm, int trace) {
 			if (trace) {
 				fprintf(stderr, " JNE [%04x]\n", vm->code[vm->ip]);
 			}
-			a = vm->stack[vm->sp--];
-			b = vm->stack[vm->sp--];
+			a = vm->stack[vm->sp];
+			b = vm->stack[vm->sp - 1];
 			if (a != b) {
 				vm->ip = vm->code[vm->ip];
 			} else {
