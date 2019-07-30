@@ -17,6 +17,7 @@
 #define JMP   8
 #define JE    9
 #define JNE  10
+#define IMUL 11
 
 struct vm {
 	int  ip;
@@ -176,6 +177,18 @@ void run(struct vm *vm, int trace) {
 			}
 			break;
 
+		case IMUL:
+			if (trace) {
+				fprintf(stderr, " IMUL\n");
+			}
+			b = vm->stack[vm->sp--];
+			a = vm->stack[vm->sp--];
+			vm->stack[++vm->sp] = a * b;
+			if (trace) {
+				dumpstack(vm);
+			}
+			break;
+
 		default:
 			if (trace) {
 				fprintf(stderr, " UNKNOWN!!\n");
@@ -190,37 +203,13 @@ int main(int argc, char **argv) {
 
 	int prog[] = {
 		/*
-		   if (1 == 2) {
-		     print 10
-		   } else {
-		     print 20
-		   }
+		   print 6 * 9
 		 */
-		IPUSH, 1,    /*  0 */
-		IPUSH, 2,    /*  2 */
-		JE, 10,      /*  4 */
-		IPUSH, 20,   /*  6 */
-		PRINT,       /*  8 */
-		JMP, 14,     /*  9 */
-		IPUSH, 10,   /* 11 */
-		PRINT,       /* 13 */
-
-		/*
-		   if (3 != 4) {
-		     print 30
-		   } else {
-		     print 40
-		   }
-		 */
-		IPUSH, 3,    /* 14 */
-		IPUSH, 4,    /* 16 */
-		JNE, 25,     /* 18 */
-		IPUSH, 40,   /* 20 */
-		PRINT,       /* 22 */
-		JMP, 28,     /* 23 */
-		IPUSH, 30,   /* 25 */
-		PRINT,       /* 27 */
-		HALT,        /* 28 */
+		IPUSH, 6,
+		IPUSH, 9,
+		IMUL,
+		PRINT,
+		HALT,
 	};
 
 	struct vm vm;
