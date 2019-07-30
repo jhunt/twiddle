@@ -18,6 +18,7 @@
 #define JE    9
 #define JNE  10
 #define IMUL 11
+#define POP  12
 
 struct vm {
 	int  ip;
@@ -189,6 +190,16 @@ void run(struct vm *vm, int trace) {
 			}
 			break;
 
+		case POP:
+			if (trace) {
+				fprintf(stderr, " POP\n");
+			}
+			vm->sp--;
+			if (trace) {
+				dumpstack(vm);
+			}
+			break;
+
 		default:
 			if (trace) {
 				fprintf(stderr, " UNKNOWN!!\n");
@@ -203,11 +214,12 @@ int main(int argc, char **argv) {
 
 	int prog[] = {
 		/*
-		   print 6 * 9
+		   // print 6
+		   print 9
 		 */
 		IPUSH, 6,
+		POP,
 		IPUSH, 9,
-		IMUL,
 		PRINT,
 		HALT,
 	};
