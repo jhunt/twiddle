@@ -133,13 +133,13 @@ void run(struct vm *vm, int trace) {
 			if (trace) {
 				fprintf(stderr, " RET (fp=%d)\n", vm->fp);
 			}
-			a = vm->stack[vm->sp--]; /* return value */
-			vm->sp = vm->fp;
-			vm->ip = vm->stack[vm->sp--];
-			vm->fp = vm->stack[vm->sp--];
-			b = vm->stack[vm->sp--]; /* number of args */
-			vm->sp -= b;
-			vm->stack[++vm->sp] = a;
+			a = vm->stack[vm->sp];        /* pop return value   */
+			vm->sp = vm->fp;              /* reposition stack   */
+			vm->ip = vm->stack[vm->sp--]; /* pop return address */
+			vm->fp = vm->stack[vm->sp--]; /* pop frame pointer  */
+			vm->sp -= vm->stack[vm->sp];  /* pop arguments      */
+			vm->stack[++vm->sp] = a;      /* push return value  */
+
 			if (trace) {
 				dumpstack(vm);
 				fprintf(stderr, "    to ip [%04x]\n", vm->ip);
@@ -228,14 +228,33 @@ int main(int argc, char **argv) {
 
 	int prog[] = {
 		/*
-		   // print 6
-		   print 9
+		   fac(n) {
+		     if (n == 1) {
+		       return 1;
+		     }
+		     return n * fac(n - 1)
+		   }
+		   print fac(5)
 		 */
-		IPUSH, 6,
-		POP,
-		IPUSH, 9,
-		PRINT,
-		HALT,
+		IPUSH, 5,    /*  0 */
+		CALL,  7, 1, /*  2 */
+		PRINT,       /*  5 */
+		HALT,        /*  6 */
+
+		LOAD, -3,    /*  7 */
+		IPUSH, 1,    /*  9 */
+		JNE, 15,     /* 11 */
+		POP,         /* 13 */
+		RET,         /* 14 */
+		POP,         /* 15 */
+		LOAD, -3,    /* 16 */
+		IPUSH, 1,    /* 18 */
+		ISUB,        /* 19 */
+		CALL,  7, 1, /* 20 */
+		IMUL,        /* 23 */
+		RET,         /* 24 */
+
+		END,
 	};
 
 	struct vm vm;
