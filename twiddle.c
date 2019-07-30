@@ -19,7 +19,7 @@ struct vm {
 
 void run(struct vm *vm, int trace) {
 	int op;
-	int o1;
+	int a;
 
 	vm->ip = 0;
 	vm->sp = -1;
@@ -35,9 +35,9 @@ void run(struct vm *vm, int trace) {
 			return;
 
 		case IPUSH:
-			o1 = vm->code[vm->ip++];
-			fprintf(stderr, " IPUSH %d\n", o1);
-			vm->stack[++vm->sp] = o1;
+			a = vm->code[vm->ip++];
+			fprintf(stderr, " IPUSH %d\n", a);
+			vm->stack[++vm->sp] = a;
 			break;
 
 		case PRINT:
