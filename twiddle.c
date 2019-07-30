@@ -14,6 +14,9 @@
 #define ISUB  5
 #define CALL  6
 #define RET   7
+#define JMP   8
+#define JE    9
+#define JNE  10
 
 struct vm {
 	int  ip;
@@ -140,6 +143,39 @@ void run(struct vm *vm, int trace) {
 			}
 			break;
 
+		case JMP:
+			if (trace) {
+				fprintf(stderr, " JMP [%04x]\n", vm->code[vm->ip]);
+			}
+			vm->ip = vm->code[vm->ip];
+			break;
+
+		case JE:
+			if (trace) {
+				fprintf(stderr, " JE [%04x]\n", vm->code[vm->ip]);
+			}
+			a = vm->stack[vm->sp--];
+			b = vm->stack[vm->sp--];
+			if (a == b) {
+				vm->ip = vm->code[vm->ip];
+			} else {
+				vm->ip++;
+			}
+			break;
+
+		case JNE:
+			if (trace) {
+				fprintf(stderr, " JNE [%04x]\n", vm->code[vm->ip]);
+			}
+			a = vm->stack[vm->sp--];
+			b = vm->stack[vm->sp--];
+			if (a != b) {
+				vm->ip = vm->code[vm->ip];
+			} else {
+				vm->ip++;
+			}
+			break;
+
 		default:
 			if (trace) {
 				fprintf(stderr, " UNKNOWN!!\n");
@@ -154,23 +190,37 @@ int main(int argc, char **argv) {
 
 	int prog[] = {
 		/*
-		   f() { return 10; }
-		   40 + 2 + f() - 5;
+		   if (1 == 2) {
+		     print 10
+		   } else {
+		     print 20
+		   }
 		 */
-		IPUSH, 40,   /*  0 */
+		IPUSH, 1,    /*  0 */
 		IPUSH, 2,    /*  2 */
-		IADD,        /*  4 */
-		CALL, 14, 0, /*  5 */
-		IADD,        /*  8 */
-		IPUSH, 5,    /*  9 */
-		ISUB,        /* 11 */
-		PRINT,       /* 12 */
-		HALT,        /* 13 */
+		JE, 10,      /*  4 */
+		IPUSH, 20,   /*  6 */
+		PRINT,       /*  8 */
+		JMP, 14,     /*  9 */
+		IPUSH, 10,   /* 11 */
+		PRINT,       /* 13 */
 
-		/* (λ () 10) */
-		IPUSH, 10,   /* 14 */
-		RET,         /* 16 */
-		END          /* 17 */
+		/*
+		   if (3 != 4) {
+		     print 30
+		   } else {
+		     print 40
+		   }
+		 */
+		IPUSH, 3,    /* 14 */
+		IPUSH, 4,    /* 16 */
+		JNE, 25,     /* 18 */
+		IPUSH, 40,   /* 20 */
+		PRINT,       /* 22 */
+		JMP, 28,     /* 23 */
+		IPUSH, 30,   /* 25 */
+		PRINT,       /* 27 */
+		HALT,        /* 28 */
 	};
 
 	struct vm vm;
