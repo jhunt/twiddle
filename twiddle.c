@@ -19,6 +19,7 @@
 #define JNE  10
 #define IMUL 11
 #define POP  12
+#define LOAD 13
 
 struct vm {
 	int  ip;
@@ -197,6 +198,17 @@ void run(struct vm *vm, int trace) {
 				fprintf(stderr, " POP\n");
 			}
 			vm->sp--;
+			if (trace) {
+				dumpstack(vm);
+			}
+			break;
+
+		case LOAD:
+			a = vm->code[vm->ip++];
+			if (trace) {
+				fprintf(stderr, " LOAD [%04x]%+d\n", vm->fp, a);
+			}
+			vm->stack[++vm->sp] = vm->stack[vm->fp+a];
 			if (trace) {
 				dumpstack(vm);
 			}
