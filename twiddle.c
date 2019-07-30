@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 /* flags for run() */
 #define TRACE   1
@@ -40,7 +41,7 @@ void run(struct vm *vm, int trace) {
 	vm->ip = 0;
 	vm->sp = -1;
 	memset(vm->stack, ~0, sizeof(vm->stack) / sizeof(int));
-	while (op = vm->code[vm->ip]) {
+	while ((op = vm->code[vm->ip])) {
 		if (trace) {
 			fprintf(stderr, "[%04x] %04x", vm->ip, op);
 		}
@@ -48,60 +49,60 @@ void run(struct vm *vm, int trace) {
 		vm->ip++;
 		switch (op) {
 		case HALT:
-			fprintf(stderr, " HALT\n");
+			if (trace) {
+				fprintf(stderr, " HALT\n");
+			}
 			return;
 
 		case IPUSH:
 			a = vm->code[vm->ip++];
-			fprintf(stderr, " IPUSH %d\n", a);
+			if (trace) {
+				fprintf(stderr, " IPUSH %d\n", a);
+			}
 			vm->stack[++vm->sp] = a;
+			if (trace) {
+				dumpstack(vm);
+			}
 			break;
 
 		case PRINT:
-			fprintf(stderr, " PRINT\n");
+			if (trace) {
+				fprintf(stderr, " PRINT\n");
+			}
 			printf("%d\n", vm->stack[vm->sp--]);
+			if (trace) {
+				dumpstack(vm);
+			}
 			break;
 
 		case IADD:
-			fprintf(stderr, " IADD\n");
+			if (trace) {
+				fprintf(stderr, " IADD\n");
+			}
 			b = vm->stack[vm->sp--];
 			a = vm->stack[vm->sp--];
 			vm->stack[++vm->sp] = a + b;
+			if (trace) {
+				dumpstack(vm);
+			}
 			break;
 
 		case ISUB:
-			fprintf(stderr, " ISUB\n");
+			if (trace) {
+				fprintf(stderr, " ISUB\n");
+			}
 			b = vm->stack[vm->sp--];
 			a = vm->stack[vm->sp--];
 			vm->stack[++vm->sp] = a - b;
+			if (trace) {
+				dumpstack(vm);
+			}
 			break;
 
 		case CALL:
-			/* FRAME layout
-
-			  +----------------+
-			  | argn           |
-			  +----------------+
-			  | arg2           |
-			  +----------------+
-			  | arg1           |
-			  +----------------+
-			  | nargs          |
-			  +----------------+
-			  | return address |
-			  +----------------+
-			  | saved fp       | <--- fp
-			  +----------------+
-			  | local1         |
-			  +----------------+
-			  | local2         |
-			  +----------------+
-			  | local3         | <--- sp
-			  +----------------+
-
-			 */
-			fprintf(stderr, " CALL [%04x] %d\n", vm->code[vm->ip], vm->code[vm->ip+1]);
-			dumpstack(vm);
+			if (trace) {
+				fprintf(stderr, " CALL [%04x] %d\n", vm->code[vm->ip], vm->code[vm->ip+1]);
+			}
 			a = vm->code[vm->ip++]; /* fn addr */
 			b = vm->code[vm->ip++]; /* # args  */
 
@@ -110,28 +111,39 @@ void run(struct vm *vm, int trace) {
 			vm->stack[++vm->sp] = vm->ip;  /* return address         */
 			vm->stack[++vm->sp] = vm->fp;    /* previous frame pointer */
 			vm->fp = vm->sp;
-			dumpstack(vm);
-			fprintf(stderr, "   ret to [%04x]\n", vm->ip);
+			if (trace) {
+				dumpstack(vm);
+				fprintf(stderr, "   ret to [%04x]\n", vm->ip);
+			}
 			vm->ip = a;
-			fprintf(stderr, "    at ip [%04x]\n", vm->ip);
-			fprintf(stderr, "       fp [%04x]\n", vm->fp);
-			fprintf(stderr, "       sp [%04x]\n", vm->sp);
+			if (trace) {
+				fprintf(stderr, "    at ip [%04x]\n", vm->ip);
+				fprintf(stderr, "       fp [%04x]\n", vm->fp);
+				fprintf(stderr, "       sp [%04x]\n", vm->sp);
+			}
 			break;
 
 		case RET:
-			fprintf(stderr, " RET\n");
+			if (trace) {
+				fprintf(stderr, " RET\n");
+			}
 			a = vm->stack[vm->sp];
 			vm->ip = vm->stack[vm->fp-1];
 			vm->fp = vm->stack[vm->fp];
 			vm->sp = vm->fp;
 			vm->stack[++vm->sp] = a;
-			fprintf(stderr, "    to ip [%04x]\n", vm->ip);
-			fprintf(stderr, "       fp [%04x]\n", vm->fp);
-			fprintf(stderr, "       sp [%04x]\n", vm->sp);
+			if (trace) {
+				dumpstack(vm);
+				fprintf(stderr, "    to ip [%04x]\n", vm->ip);
+				fprintf(stderr, "       fp [%04x]\n", vm->fp);
+				fprintf(stderr, "       sp [%04x]\n", vm->sp);
+			}
 			break;
 
 		default:
-			fprintf(stderr, " UNKNOWN!!\n");
+			if (trace) {
+				fprintf(stderr, " UNKNOWN!!\n");
+			}
 			return;
 		}
 	}
