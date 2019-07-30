@@ -5,8 +5,10 @@
 #define NOTRACE 0
 
 /* opcodes for virtual machine */
-#define END  0
-#define HALT 1
+#define END   0
+#define HALT  1
+#define IPUSH 2
+#define PRINT 3
 
 struct vm {
 	int  ip;
@@ -26,6 +28,12 @@ void run(struct vm *vm, int trace) {
 		switch (op) {
 		case HALT:
 			return;
+
+		case IPUSH:
+			break;
+
+		case PRINT:
+			break;
 		}
 	}
 }
@@ -34,6 +42,8 @@ int main(int argc, char **argv) {
 	fprintf(stderr, "Twiddle: a stack VM for language discovery\n");
 
 	int prog[] = {
+		IPUSH, 42,
+		PRINT,
 		HALT,
 		END,
 	};
