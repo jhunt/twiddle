@@ -20,6 +20,8 @@
 #define IMUL  11
 #define POP   12
 #define LOAD  13
+#define STORE 14
+#define POPF  15
 
 struct vm {
 	int  ip;
@@ -214,6 +216,24 @@ void run(struct vm *vm, int trace) {
 			}
 			break;
 
+		case STORE:
+			a = vm->code[vm->ip++];
+			if (trace) {
+				fprintf(stderr, " STORE [%04x]%+d\n", vm->fp, a);
+			}
+			vm->stack[vm->fp+a] = vm->stack[vm->sp--];
+			if (trace) {
+				dumpstack(vm);
+			}
+			break;
+
+		case POPF:
+			if (trace) {
+				fprintf(stderr, " POPF\n");
+			}
+			vm->sp = vm->fp;
+			break;
+
 		default:
 			if (trace) {
 				fprintf(stderr, " UNKNOWN!!\n");
@@ -228,31 +248,35 @@ int main(int argc, char **argv) {
 
 	int prog[] = {
 		/*
-		   fac(n) {
+		   fac(n,f) {
 		     if (n == 1) {
-		       return 1;
+		       return f;
 		     }
-		     return n * fac(n - 1)
+		     return fac(n - 1, n * f)
 		   }
-		   print fac(5)
+		   print fac(5, 1)
 		 */
 		IPUSH, 5,    /*  0 */
-		CALL,  7, 1, /*  2 */
-		PRINT,       /*  5 */
-		HALT,        /*  6 */
+		IPUSH, 1,    /*  2 */
+		CALL,  9, 2, /*  4 */
+		PRINT,       /*  7 */
+		HALT,        /*  8 */
 
-		LOAD, -3,    /*  7 */
-		IPUSH, 1,    /*  9 */
-		JNE, 15,     /* 11 */
-		POP,         /* 13 */
-		RET,         /* 14 */
-		POP,         /* 15 */
-		LOAD, -3,    /* 16 */
-		IPUSH, 1,    /* 18 */
-		ISUB,        /* 19 */
-		CALL,  7, 1, /* 20 */
-		IMUL,        /* 23 */
-		RET,         /* 24 */
+		LOAD, -4,    /*  9 */
+		IPUSH, 1,    /* 11 */
+		JNE, 18,     /* 13 */
+		LOAD, -3,    /* 15 */
+		RET,         /* 17 */
+		LOAD, -4,    /* 18 */
+		IPUSH, 1,    /* 20 */
+		ISUB,        /* 22 */
+		LOAD, -4,    /* 23 */
+		LOAD, -3,    /* 25 */
+		IMUL,        /* 27 */
+		STORE, -3,   /* 28 */
+		STORE, -4,   /* 30 */
+		POPF,        /* 32 */
+		JMP, 9,      /* 33 */
 
 		END,
 	};
