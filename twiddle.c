@@ -6,20 +6,20 @@
 #define NOTRACE 0
 
 /* opcodes for virtual machine */
-#define END   0
-#define HALT  1
-#define IPUSH 2
-#define PRINT 3
-#define IADD  4
-#define ISUB  5
-#define CALL  6
-#define RET   7
-#define JMP   8
-#define JE    9
-#define JNE  10
-#define IMUL 11
-#define POP  12
-#define LOAD 13
+#define END    0
+#define HALT   1
+#define IPUSH  2
+#define PRINT  3
+#define IADD   4
+#define ISUB   5
+#define CALL   6
+#define RET    7
+#define JMP    8
+#define JE     9
+#define JNE   10
+#define IMUL  11
+#define POP   12
+#define LOAD  13
 
 struct vm {
 	int  ip;
