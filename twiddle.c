@@ -393,6 +393,7 @@ struct scanner {
 	struct {
 		const char *a, *b;
 		int         token;
+		int         sign;
 		union {
 			int int32;
 		} value;
@@ -431,7 +432,8 @@ int token(struct scanner *sc) {
 				sc->state = SCANNING_OPERAND;
 				sc->lexeme.a = sc->lexeme.b = a;
 				sc->lexeme.token = T_NUMBER;
-				sc->lexeme.value.int32 = (*a == '-' ? -1 : *a - '0');
+				sc->lexeme.value.int32 = (*a == '-' ? 0 : *a - '0');
+				sc->lexeme.sign = (*a == '-' ? -1 : 1);
 
 			} else if (*a == '_') {
 				sc->state = SCANNING_LABEL;
@@ -465,7 +467,8 @@ int token(struct scanner *sc) {
 			if (!isdigit(*a)) {
 				return -1;
 			}
-			sc->lexeme.value.int32 *= (*a - '0');
+			sc->lexeme.value.int32 *= 10;
+			sc->lexeme.value.int32 += (*a - '0');
 			a++;
 			break;
 
@@ -601,7 +604,7 @@ int * scan(const char *path) {
 			break;
 
 		case T_NUMBER:
-			code[ncode++] = sc.lexeme.value.int32;
+			code[ncode++] = sc.lexeme.value.int32 * sc.lexeme.sign;
 			break;
 
 		case T_LREF:
