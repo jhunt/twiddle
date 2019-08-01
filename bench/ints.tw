@@ -1,0 +1,30 @@
+; repeat 10k times
+ipush 10000000
+call _stress 1
+halt
+
+
+_stress:
+  load -3
+  _again:
+    ipush 0
+    jne _continue
+    ret
+
+  _continue:
+    pop
+
+    ipush 7
+    ipush 2
+    idiv
+
+    ipush 15
+    imul
+
+    load -3
+    iadd
+    pop
+
+    ipush 1
+    isub
+    jmp _again
