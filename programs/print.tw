@@ -1,0 +1,3 @@
+ipush 42
+print
+halt

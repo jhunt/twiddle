@@ -1,0 +1,19 @@
+ipush 5
+call _fac 1
+print
+halt
+
+_fac:
+  load -3
+  ipush 1
+  jne _recurse
+  pop
+  ret
+_recurse:
+  pop
+  load  -3
+  ipush  1
+  isub
+  call _fac 1
+  imul
+  ret

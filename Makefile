@@ -2,4 +2,4 @@ default: demo
 
 demo: twiddle
 	@clear
-	./twiddle
+	./twiddle test.tw
