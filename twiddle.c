@@ -8,10 +8,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-/* flags for run() */
-#define TRACE   1
-#define NOTRACE 0
-
 /* opcodes for virtual machine */
 #define END    0
 #define HALT   1
@@ -654,6 +650,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "syntax error.\n");
 		return 1;
 	}
-	run(&vm, TRACE);
+	run(&vm, !!getenv("TRACE"));
 	return 0;
 }
