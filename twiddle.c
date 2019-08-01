@@ -404,6 +404,7 @@ struct scanner {
 #define SCANNING_OPCODE  1
 #define SCANNING_OPERAND 2
 #define SCANNING_LABEL   3
+#define SCANNING_COMMENT 4
 
 #define T_OPCODE 101
 #define T_NUMBER 102
@@ -440,6 +441,9 @@ int token(struct scanner *sc) {
 				sc->lexeme.a = sc->lexeme.b = a;
 				sc->lexeme.token = T_LREF; /* a guess */
 
+			} else if (*a == ';') {
+				sc->state = SCANNING_COMMENT;
+
 			} else if (!isspace(*a)) {
 				return -1;
 			}
@@ -452,6 +456,11 @@ int token(struct scanner *sc) {
 				sc->state = SCANNING_SPACE;
 				return 0;
 			}
+			if (*a == ';') {
+				sc->head = sc->lexeme.b = a;
+				sc->state = SCANNING_COMMENT;
+				return 0;
+			}
 			if (!isalnum(*a)) {
 				return -1;
 			}
@@ -462,6 +471,11 @@ int token(struct scanner *sc) {
 			if (isspace(*a)) {
 				sc->head = sc->lexeme.b = a;
 				sc->state = SCANNING_SPACE;
+				return 0;
+			}
+			if (*a == ';') {
+				sc->head = sc->lexeme.b = a;
+				sc->state = SCANNING_COMMENT;
 				return 0;
 			}
 			if (!isdigit(*a)) {
@@ -478,6 +492,11 @@ int token(struct scanner *sc) {
 				sc->state = SCANNING_SPACE;
 				return 0;
 			}
+			if (*a == ';') {
+				sc->head = sc->lexeme.b = a;
+				sc->state = SCANNING_COMMENT;
+				return 0;
+			}
 			if (*a == ':') {
 				sc->lexeme.token = T_LABEL;
 				sc->head = sc->lexeme.b = a;
@@ -487,6 +506,13 @@ int token(struct scanner *sc) {
 			}
 			if (!isalnum(*a) && *a != '_') {
 				return -1;
+			}
+			a++;
+			break;
+
+		case SCANNING_COMMENT:
+			if (*a == '\n') {
+				sc->state = SCANNING_SPACE;
 			}
 			a++;
 			break;
